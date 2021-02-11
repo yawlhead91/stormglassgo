@@ -33,6 +33,7 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
+		return err
 	}
 
 	defer res.Body.Close()
