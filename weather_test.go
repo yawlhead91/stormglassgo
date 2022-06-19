@@ -282,6 +282,31 @@ func TestClientGetPoint(t *testing.T) {
 		assert.Nil(err, "expecting nil err")
 		assert.NotNil(res, "expecting non-nil response")
 	})
+
+	t.Run("with response error", func(t *testing.T) {
+
+		assert := assert.New(t)
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			want := `{"errors:{"unauthorized", "Unauthorized – Your API key is invalid."}}`
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(want))
+		}))
+		defer ts.Close()
+
+		c := NewClient(testKey)
+		c.BaseURL = ts.URL
+		c.HTTPClient = ts.Client()
+
+		ctx := context.Background()
+		res, err := c.GetPoint(ctx, PointsRequestOptions{
+			Lat: lat,
+			Lng: lng,
+			End: &end,
+		})
+
+		assert.Nil(res, "expecting nil response")
+		assert.NotNil(err, "expecting non-nil error")
+	})
 }
 
 // lower case first letter helper func
