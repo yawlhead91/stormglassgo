@@ -2,6 +2,7 @@ package stormglass
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -43,7 +44,7 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	}
 
 	if err = json.NewDecoder(res.Body).Decode(v); err != nil {
-		return err
+		return fmt.Errorf("decodeing response %v", err)
 	}
 
 	return nil

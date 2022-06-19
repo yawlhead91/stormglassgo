@@ -1,11 +1,24 @@
 package stormglass
 
 import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"reflect"
 	"testing"
 	"unicode"
 
+	"github.com/jinzhu/now"
+
 	"github.com/stretchr/testify/assert"
+)
+
+const (
+	testKey = "testkey123"
+	// Banzai Pipeline, Oahu, Hawaii
+	lat = 58.7984
+	lng = 17.8081
 )
 
 func TestParamOptionsToList(t *testing.T) {
@@ -110,7 +123,165 @@ func TestSourceOptionsToList(t *testing.T) {
 }
 
 func TestClientGetPoint(t *testing.T) {
+	var start = now.BeginningOfDay()
+	var end = now.EndOfDay()
 
+	t.Run("test full url composition", func(t *testing.T) {
+
+		assert := assert.New(t)
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.NotNil(r.URL)
+			assert.Equal(r.URL.Path, "/weather/point")
+			assert.Equal(
+				r.URL.RawQuery,
+				fmt.Sprintf(
+					"lat=%f&lng=%f&params=%s,%s&start=%d&end=%d&source=%s,%s",
+					lat,
+					lng,
+					"airTemperature",
+					"waveDirection",
+					start.Unix(),
+					end.Unix(),
+					"fcoo",
+					"fmi",
+				),
+			)
+			fmt.Fprintln(w, "{}")
+		}))
+		defer ts.Close()
+
+		c := NewClient(testKey)
+		c.BaseURL = ts.URL
+		c.HTTPClient = ts.Client()
+
+		ctx := context.Background()
+		res, err := c.GetPoint(ctx, PointsRequestOptions{
+			Lat: lat,
+			Lng: lng,
+			Params: ParamsOptions{
+				AirTemperature: true,
+				WaveDirection:  true,
+			},
+			Source: SourcesOptions{
+				FCOO: true,
+				FMI:  true,
+			},
+			Start: &start,
+			End:   &end,
+		})
+
+		assert.Nil(err, "expecting nil err")
+		assert.NotNil(res, "expecting non-nil response")
+	})
+	t.Run("test url composition with no params", func(t *testing.T) {
+
+		assert := assert.New(t)
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.NotNil(r.URL)
+			assert.Equal(r.URL.Path, "/weather/point")
+			assert.Equal(
+				r.URL.RawQuery,
+				fmt.Sprintf(
+					"lat=%f&lng=%f&start=%d&end=%d&source=%s,%s",
+					lat,
+					lng,
+					start.Unix(),
+					end.Unix(),
+					"fcoo",
+					"fmi",
+				),
+			)
+			fmt.Fprintln(w, "{}")
+		}))
+		defer ts.Close()
+
+		c := NewClient(testKey)
+		c.BaseURL = ts.URL
+		c.HTTPClient = ts.Client()
+
+		ctx := context.Background()
+		res, err := c.GetPoint(ctx, PointsRequestOptions{
+			Lat: lat,
+			Lng: lng,
+			Source: SourcesOptions{
+				FCOO: true,
+				FMI:  true,
+			},
+			Start: &start,
+			End:   &end,
+		})
+
+		assert.Nil(err, "expecting nil err")
+		assert.NotNil(res, "expecting non-nil response")
+	})
+	t.Run("test url composition with no source", func(t *testing.T) {
+
+		assert := assert.New(t)
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.NotNil(r.URL)
+			assert.Equal(r.URL.Path, "/weather/point")
+			assert.Equal(
+				r.URL.RawQuery,
+				fmt.Sprintf(
+					"lat=%f&lng=%f&start=%d&end=%d",
+					lat,
+					lng,
+					start.Unix(),
+					end.Unix(),
+				),
+			)
+			fmt.Fprintln(w, "{}")
+		}))
+		defer ts.Close()
+
+		c := NewClient(testKey)
+		c.BaseURL = ts.URL
+		c.HTTPClient = ts.Client()
+
+		ctx := context.Background()
+		res, err := c.GetPoint(ctx, PointsRequestOptions{
+			Lat:   lat,
+			Lng:   lng,
+			Start: &start,
+			End:   &end,
+		})
+
+		assert.Nil(err, "expecting nil err")
+		assert.NotNil(res, "expecting non-nil response")
+	})
+	t.Run("test url composition with no start date", func(t *testing.T) {
+
+		assert := assert.New(t)
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.NotNil(r.URL)
+			assert.Equal(r.URL.Path, "/weather/point")
+			assert.Equal(
+				r.URL.RawQuery,
+				fmt.Sprintf(
+					"lat=%f&lng=%f&end=%d",
+					lat,
+					lng,
+					end.Unix(),
+				),
+			)
+			fmt.Fprintln(w, "{}")
+		}))
+		defer ts.Close()
+
+		c := NewClient(testKey)
+		c.BaseURL = ts.URL
+		c.HTTPClient = ts.Client()
+
+		ctx := context.Background()
+		res, err := c.GetPoint(ctx, PointsRequestOptions{
+			Lat: lat,
+			Lng: lng,
+			End: &end,
+		})
+
+		assert.Nil(err, "expecting nil err")
+		assert.NotNil(res, "expecting non-nil response")
+	})
 }
 
 // lower case first letter helper func
