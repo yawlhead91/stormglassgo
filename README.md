@@ -11,7 +11,7 @@ go get github.com/yawlhead91/stormglassgo
 ```
 
 ## Usage
-```
+```go
 package main
 
 import (
