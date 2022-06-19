@@ -372,7 +372,7 @@ func (p ParamsOptions) toList() []string {
 		params = append(params, "airTemperature100m")
 	}
 	if p.AirTemperature1000hpa {
-		params = append(params, "airTemperature100m")
+		params = append(params, "airTemperature1000hpa")
 	}
 	if p.AirTemperature800hpa {
 		params = append(params, "airTemperature800hpa")
@@ -410,6 +410,36 @@ func (p ParamsOptions) toList() []string {
 	if p.SnowDepth {
 		params = append(params, "snowDepth")
 	}
+	if p.SeaLevel {
+		params = append(params, "seaLevel")
+	}
+	if p.SwellDirection {
+		params = append(params, "swellDirection")
+	}
+	if p.SwellHeight {
+		params = append(params, "swellHeight")
+	}
+	if p.SwellPeriod {
+		params = append(params, "swellPeriod")
+	}
+	if p.SecondarySwellPeriod {
+		params = append(params, "secondarySwellPeriod")
+	}
+	if p.SecondarySwellDirection {
+		params = append(params, "secondarySwellDirection")
+	}
+	if p.SecondarySwellHeight {
+		params = append(params, "secondarySwellHeight")
+	}
+	if p.Visibility {
+		params = append(params, "visibility")
+	}
+	if p.WaterTemperature {
+		params = append(params, "waterTemperature")
+	}
+	if p.WaveDirection {
+		params = append(params, "waveDirection")
+	}
 
 	return params
 }
@@ -429,7 +459,6 @@ type SourcesOptions struct {
 
 func (s SourcesOptions) toList() []string {
 	var sources []string
-
 	if s.ICON {
 		sources = append(sources, "icon")
 	}
@@ -441,6 +470,21 @@ func (s SourcesOptions) toList() []string {
 	}
 	if s.UKMetOffice {
 		sources = append(sources, "meto")
+	}
+	if s.FCOO {
+		sources = append(sources, "fcoo")
+	}
+	if s.FMI {
+		sources = append(sources, "fmi")
+	}
+	if s.YR {
+		sources = append(sources, "yr")
+	}
+	if s.SMHI {
+		sources = append(sources, "smhi")
+	}
+	if s.StormGlass {
+		sources = append(sources, "sg")
 	}
 
 	return sources

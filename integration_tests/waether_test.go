@@ -1,6 +1,6 @@
 // +build integration
 
-package stormglass_test
+package integration_tests_test
 
 import (
 	"context"
