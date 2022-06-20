@@ -287,7 +287,7 @@ func TestClientGetPoint(t *testing.T) {
 
 		assert := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			want := `{"errors:{"unauthorized", "Unauthorized – Your API key is invalid."}}`
+			want := `{"errors:{"key", "Unauthorized – Your API key is invalid."}}`
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(want))
 		}))
