@@ -5,7 +5,6 @@ package integration_tests_test
 
 import (
 	"context"
-	"log"
 	"os"
 	"testing"
 	"time"
@@ -46,9 +45,6 @@ func TestGetPoint(t *testing.T) {
 		tme := time.Now().In(time.UTC)
 		var start = now.New(tme).BeginningOfDay()
 		var end = now.New(tme).BeginningOfDay().Add(time.Hour * 23) // api returns hours ahead
-
-		loc := start.Location()
-		log.Println(loc)
 
 		c := stormglass.NewClient(os.Getenv("STORMGLASS_API_KEY"))
 
