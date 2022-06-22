@@ -3,7 +3,7 @@ package stormglass
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -14,10 +14,11 @@ type Error struct {
 }
 
 func (e Error) Error() string {
-	var messages []string
+	messages := make([]string, 0, len(e.Errors))
 	for k, v := range e.Errors {
 		messages = append(messages, fmt.Sprintf("%s:%s", k, v))
 	}
+
 	return fmt.Sprintf("%d: %s", e.StatusCode, strings.Join(messages, ","))
 }
 
@@ -28,11 +29,12 @@ func NewError(resp *http.Response) error {
 		Errors:     map[string]interface{}{},
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err == nil && data != nil {
 		if err := json.Unmarshal(data, &apiErr); err != nil {
 			apiErr.Errors["unknown"] = []string{"unknown_error_format"}
 		}
 	}
+
 	return &apiErr
 }

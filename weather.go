@@ -362,81 +362,107 @@ func (p ParamsOptions) toList() []string {
 	if p.Time {
 		params = append(params, "time")
 	}
+
 	if p.AirTemperature {
 		params = append(params, "airTemperature")
 	}
+
 	if p.AirTemperature80m {
 		params = append(params, "airTemperature80m")
 	}
+
 	if p.AirTemperature100m {
 		params = append(params, "airTemperature100m")
 	}
+
 	if p.AirTemperature1000hpa {
 		params = append(params, "airTemperature1000hpa")
 	}
+
 	if p.AirTemperature800hpa {
 		params = append(params, "airTemperature800hpa")
 	}
+
 	if p.AirTemperature500hpa {
 		params = append(params, "airTemperature500hpa")
 	}
+
 	if p.AirTemperature200hpa {
 		params = append(params, "airTemperature200hpa")
 	}
+
 	if p.Pressure {
 		params = append(params, "pressure")
 	}
+
 	if p.CloudCover {
 		params = append(params, "cloudCover")
 	}
+
 	if p.CurrentDirection {
 		params = append(params, "currentDirection")
 	}
+
 	if p.CurrentSpeed {
 		params = append(params, "currentSpeed")
 	}
+
 	if p.Gust {
 		params = append(params, "gust")
 	}
+
 	if p.Humidity {
 		params = append(params, "humidity")
 	}
+
 	if p.IceCover {
 		params = append(params, "iceCover")
 	}
+
 	if p.Precipitation {
 		params = append(params, "precipitation")
 	}
+
 	if p.SnowDepth {
 		params = append(params, "snowDepth")
 	}
+
 	if p.SeaLevel {
 		params = append(params, "seaLevel")
 	}
+
 	if p.SwellDirection {
 		params = append(params, "swellDirection")
 	}
+
 	if p.SwellHeight {
 		params = append(params, "swellHeight")
 	}
+
 	if p.SwellPeriod {
 		params = append(params, "swellPeriod")
 	}
+
 	if p.SecondarySwellPeriod {
 		params = append(params, "secondarySwellPeriod")
 	}
+
 	if p.SecondarySwellDirection {
 		params = append(params, "secondarySwellDirection")
 	}
+
 	if p.SecondarySwellHeight {
 		params = append(params, "secondarySwellHeight")
 	}
+
 	if p.Visibility {
 		params = append(params, "visibility")
 	}
+
 	if p.WaterTemperature {
 		params = append(params, "waterTemperature")
 	}
+
 	if p.WaveDirection {
 		params = append(params, "waveDirection")
 	}
@@ -462,27 +488,35 @@ func (s SourcesOptions) toList() []string {
 	if s.ICON {
 		sources = append(sources, "icon")
 	}
+
 	if s.NOAA {
 		sources = append(sources, "noaa")
 	}
+
 	if s.MeteoFrance {
 		sources = append(sources, "meteo")
 	}
+
 	if s.UKMetOffice {
 		sources = append(sources, "meto")
 	}
+
 	if s.FCOO {
 		sources = append(sources, "fcoo")
 	}
+
 	if s.FMI {
 		sources = append(sources, "fmi")
 	}
+
 	if s.YR {
 		sources = append(sources, "yr")
 	}
+
 	if s.SMHI {
 		sources = append(sources, "smhi")
 	}
+
 	if s.StormGlass {
 		sources = append(sources, "sg")
 	}
@@ -506,9 +540,11 @@ func (c *Client) GetPoint(ctx context.Context, options PointsRequestOptions) (*P
 	if len(params) > 0 {
 		endpoint = fmt.Sprintf("%s&params=%s", endpoint, strings.Join(params, ","))
 	}
+
 	if options.Start != nil {
 		endpoint = fmt.Sprintf("%s&start=%d", endpoint, options.Start.Unix())
 	}
+
 	if options.End != nil {
 		endpoint = fmt.Sprintf("%s&end=%d", endpoint, options.End.Unix())
 	}
@@ -518,13 +554,14 @@ func (c *Client) GetPoint(ctx context.Context, options PointsRequestOptions) (*P
 		endpoint = fmt.Sprintf("%s&source=%s", endpoint, strings.Join(sources, ","))
 	}
 
-	req, err := http.NewRequest("GET", endpoint, nil)
+	req, err := http.NewRequest("GET", endpoint, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
 
 	req = req.WithContext(ctx)
 	res := Points{}
+
 	if err := c.sendRequest(req, &res); err != nil {
 		return nil, err
 	}

@@ -22,7 +22,9 @@ func TestClientSendRequest(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			want := `{"errors":{"key":"API key is invalid"}}`
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(want))
+			if _, err := w.Write([]byte(want)); err != nil {
+				t.Fatal(err)
+			}
 		}))
 		defer ts.Close()
 
@@ -30,7 +32,7 @@ func TestClientSendRequest(t *testing.T) {
 		c.BaseURL = ts.URL
 		c.HTTPClient = ts.Client()
 
-		req, _ := http.NewRequest("GET", ts.URL, nil)
+		req, _ := http.NewRequest("GET", ts.URL, http.NoBody)
 		err := c.sendRequest(req, nil)
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "API key is invalid")
@@ -39,7 +41,9 @@ func TestClientSendRequest(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			want := `{{`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(want))
+			if _, err := w.Write([]byte(want)); err != nil {
+				t.Fatal(err)
+			}
 		}))
 		defer ts.Close()
 
@@ -47,7 +51,7 @@ func TestClientSendRequest(t *testing.T) {
 		c.BaseURL = ts.URL
 		c.HTTPClient = ts.Client()
 
-		req, _ := http.NewRequest("GET", ts.URL, nil)
+		req, _ := http.NewRequest("GET", ts.URL, http.NoBody)
 		err := c.sendRequest(req, nil)
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "decode error")
@@ -57,7 +61,9 @@ func TestClientSendRequest(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			want := `{ "name": "test" }`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(want))
+			if _, err := w.Write([]byte(want)); err != nil {
+				t.Fatal(err)
+			}
 		}))
 		defer ts.Close()
 
@@ -68,10 +74,9 @@ func TestClientSendRequest(t *testing.T) {
 		var obj struct {
 			Name string `json:"name"`
 		}
-		req, _ := http.NewRequest("GET", ts.URL, nil)
+		req, _ := http.NewRequest("GET", ts.URL, http.NoBody)
 		err := c.sendRequest(req, &obj)
 		assert.Nil(t, err)
 		assert.Equal(t, obj.Name, "test")
 	})
-
 }
