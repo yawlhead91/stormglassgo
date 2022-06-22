@@ -44,7 +44,7 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	}
 
 	if err = json.NewDecoder(res.Body).Decode(v); err != nil {
-		return fmt.Errorf("decodeing response %v", err)
+		return fmt.Errorf("decode error %v", err)
 	}
 
 	return nil

@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration_tests_test
@@ -41,13 +42,22 @@ func TestGetPoint(t *testing.T) {
 		assert.Equal(t, "403: key:API key is invalid", err.Error(), "unexpected error")
 	})
 	t.Run("success: return 24 hour points", func(t *testing.T) {
-		var start = now.BeginningOfDay()
-		var end = now.BeginningOfDay().Add(time.Hour * 23) // api returns hours ahead
+		tme := time.Now().In(time.UTC)
+		var start = now.New(tme).BeginningOfDay()
+		var end = now.New(tme).BeginningOfDay().Add(time.Hour * 23) // api returns hours ahead
 
 		c := stormglass.NewClient(os.Getenv("STORMGLASS_API_KEY"))
 
 		params := stormglass.ParamsOptions{
-			AirTemperature: true,
+			AirTemperature:   true,
+			WaveDirection:    true,
+			WaterTemperature: true,
+		}
+
+		sources := stormglass.SourcesOptions{
+			ICON:        true,
+			UKMetOffice: true,
+			StormGlass:  true,
 		}
 
 		ctx := context.Background()
@@ -57,6 +67,7 @@ func TestGetPoint(t *testing.T) {
 			Params: params,
 			Start:  &start,
 			End:    &end,
+			Source: sources,
 		})
 
 		assert.Nil(t, err, "expecting nil response")
@@ -68,5 +79,10 @@ func TestGetPoint(t *testing.T) {
 		assert.Equal(t, end.Format("2006-01-02 15:04"), res.Meta.End, "unexpected meta value for end")
 		assert.Equal(t, lat, res.Meta.Lat, "unexpected meta value for latitude")
 		assert.Equal(t, lng, res.Meta.Lng, "unexpected meta value for longitude")
+		for _, h := range res.Hours {
+			assert.NotNil(t, h.AirTemperature, "expected air temperature to be set")
+			assert.NotNil(t, h.WaveDirection, "expected wave direction to be set")
+			assert.NotNil(t, h.WaterTemperature, "expected wave temperature to be set")
+		}
 	})
 }
