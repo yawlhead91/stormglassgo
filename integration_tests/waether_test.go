@@ -5,8 +5,9 @@ package integration_tests_test
 
 import (
 	"context"
-	"github.com/jinzhu/now"
 	"testing"
+
+	"github.com/jinzhu/now"
 
 	"github.com/stretchr/testify/assert"
 	stormglass "github.com/yawlhead91/stormglassgo"

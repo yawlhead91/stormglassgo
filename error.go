@@ -27,6 +27,7 @@ func NewError(resp *http.Response) error {
 		StatusCode: resp.StatusCode,
 		Errors:     map[string]interface{}{},
 	}
+
 	data, err := ioutil.ReadAll(resp.Body)
 	if err == nil && data != nil {
 		if err := json.Unmarshal(data, &apiErr); err != nil {
