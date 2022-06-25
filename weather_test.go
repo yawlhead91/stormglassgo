@@ -15,10 +15,10 @@ import (
 )
 
 const (
-	testKey = "testkey123"
-	// Banzai Pipeline, Oahu, Hawaii
-	lat = 58.7984
-	lng = 17.8081
+	testKey      = "testkey123"
+	endpointPath = "/weather/point"
+	lat          = 58.7984
+	lng          = 17.8081
 )
 
 func TestParamOptionsToList(t *testing.T) {
@@ -97,6 +97,7 @@ func TestSourceOptionsToList(t *testing.T) {
 			true,
 			true,
 			true,
+			true,
 		}
 
 		list := options.toList()
@@ -132,7 +133,7 @@ func TestClientGetPoint(t *testing.T) {
 		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assertion.NotNil(r.URL)
-			assertion.Equal(r.URL.Path, "/weather/point")
+			assertion.Equal(r.URL.Path, endpointPath)
 			assertion.Equal(
 				r.URL.RawQuery,
 				fmt.Sprintf(
@@ -178,7 +179,7 @@ func TestClientGetPoint(t *testing.T) {
 		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assertion.NotNil(r.URL)
-			assertion.Equal(r.URL.Path, "/weather/point")
+			assertion.Equal(r.URL.Path, endpointPath)
 			assertion.Equal(
 				r.URL.RawQuery,
 				fmt.Sprintf(
@@ -218,7 +219,7 @@ func TestClientGetPoint(t *testing.T) {
 		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assertion.NotNil(r.URL)
-			assertion.Equal(r.URL.Path, "/weather/point")
+			assertion.Equal(r.URL.Path, endpointPath)
 			assertion.Equal(
 				r.URL.RawQuery,
 				fmt.Sprintf(
@@ -252,7 +253,7 @@ func TestClientGetPoint(t *testing.T) {
 		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assertion.NotNil(r.URL)
-			assertion.Equal(r.URL.Path, "/weather/point")
+			assertion.Equal(r.URL.Path, endpointPath)
 			assertion.Equal(
 				r.URL.RawQuery,
 				fmt.Sprintf(
@@ -262,7 +263,7 @@ func TestClientGetPoint(t *testing.T) {
 					end.Unix(),
 				),
 			)
-			fmt.Fprintln(w, "{}")
+			fmt.Fprintln(w, http.NoBody)
 		}))
 		defer ts.Close()
 
@@ -277,8 +278,8 @@ func TestClientGetPoint(t *testing.T) {
 			End: &end,
 		})
 
-		assertion.Nil(err, "expecting nil err")
-		assertion.NotNil(res, "expecting non-nil response")
+		assertion.Nil(err)
+		assertion.NotNil(res)
 	})
 
 	t.Run("with response error", func(t *testing.T) {
@@ -303,12 +304,12 @@ func TestClientGetPoint(t *testing.T) {
 			End: &end,
 		})
 
-		assertion.Nil(res, "expecting nil response")
-		assertion.NotNil(err, "expecting non-nil error")
+		assertion.Nil(res)
+		assertion.NotNil(err)
 	})
 }
 
-// lower case first letter helper func
+// lower case first letter helper func.
 func lcFirstLetter(str string) string {
 	for i, v := range str {
 		return string(unicode.ToLower(v)) + str[i+1:]
