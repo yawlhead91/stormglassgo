@@ -15,10 +15,10 @@ import (
 )
 
 const (
-	testKey = "testkey123"
-	// Banzai Pipeline, Oahu, Hawaii
-	lat = 58.7984
-	lng = 17.8081
+	testKey      = "testkey123"
+	endpointPath = "/weather/point"
+	lat          = 58.7984
+	lng          = 17.8081
 )
 
 func TestParamOptionsToList(t *testing.T) {
@@ -64,8 +64,8 @@ func TestParamOptionsToList(t *testing.T) {
 
 		v := reflect.ValueOf(options)
 
-		assert := assert.New(t)
-		assert.Len(list, v.NumField())
+		assertion := assert.New(t)
+		assertion.Len(list, v.NumField())
 
 		var expected []string
 		// this assumes naming conventions for fields names
@@ -74,7 +74,7 @@ func TestParamOptionsToList(t *testing.T) {
 			expected = append(expected, lcFirstLetter(v.Type().Field(i).Name))
 		}
 
-		assert.Equal(expected, list)
+		assertion.Equal(expected, list)
 	})
 }
 
@@ -97,14 +97,15 @@ func TestSourceOptionsToList(t *testing.T) {
 			true,
 			true,
 			true,
+			true,
 		}
 
 		list := options.toList()
 
 		v := reflect.ValueOf(options)
 
-		assert := assert.New(t)
-		assert.Len(list, v.NumField())
+		assertion := assert.New(t)
+		assertion.Len(list, v.NumField())
 
 		expected := []string{
 			"icon",
@@ -118,21 +119,22 @@ func TestSourceOptionsToList(t *testing.T) {
 			"sg",
 		}
 
-		assert.Equal(expected, list)
+		assertion.Equal(expected, list)
 	})
 }
 
 func TestClientGetPoint(t *testing.T) {
-	var start = now.BeginningOfDay()
-	var end = now.EndOfDay()
+	var (
+		start = now.BeginningOfDay()
+		end   = now.EndOfDay()
+	)
 
 	t.Run("test full url composition", func(t *testing.T) {
-
-		assert := assert.New(t)
+		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			assert.NotNil(r.URL)
-			assert.Equal(r.URL.Path, "/weather/point")
-			assert.Equal(
+			assertion.NotNil(r.URL)
+			assertion.Equal(r.URL.Path, endpointPath)
+			assertion.Equal(
 				r.URL.RawQuery,
 				fmt.Sprintf(
 					"lat=%f&lng=%f&params=%s,%s&start=%d&end=%d&source=%s,%s",
@@ -170,16 +172,15 @@ func TestClientGetPoint(t *testing.T) {
 			End:   &end,
 		})
 
-		assert.Nil(err, "expecting nil err")
-		assert.NotNil(res, "expecting non-nil response")
+		assertion.Nil(err, "expecting nil err")
+		assertion.NotNil(res, "expecting non-nil response")
 	})
 	t.Run("test url composition with no params", func(t *testing.T) {
-
-		assert := assert.New(t)
+		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			assert.NotNil(r.URL)
-			assert.Equal(r.URL.Path, "/weather/point")
-			assert.Equal(
+			assertion.NotNil(r.URL)
+			assertion.Equal(r.URL.Path, endpointPath)
+			assertion.Equal(
 				r.URL.RawQuery,
 				fmt.Sprintf(
 					"lat=%f&lng=%f&start=%d&end=%d&source=%s,%s",
@@ -211,16 +212,15 @@ func TestClientGetPoint(t *testing.T) {
 			End:   &end,
 		})
 
-		assert.Nil(err, "expecting nil err")
-		assert.NotNil(res, "expecting non-nil response")
+		assertion.Nil(err, "expecting nil err")
+		assertion.NotNil(res, "expecting non-nil response")
 	})
 	t.Run("test url composition with no source", func(t *testing.T) {
-
-		assert := assert.New(t)
+		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			assert.NotNil(r.URL)
-			assert.Equal(r.URL.Path, "/weather/point")
-			assert.Equal(
+			assertion.NotNil(r.URL)
+			assertion.Equal(r.URL.Path, endpointPath)
+			assertion.Equal(
 				r.URL.RawQuery,
 				fmt.Sprintf(
 					"lat=%f&lng=%f&start=%d&end=%d",
@@ -246,16 +246,15 @@ func TestClientGetPoint(t *testing.T) {
 			End:   &end,
 		})
 
-		assert.Nil(err, "expecting nil err")
-		assert.NotNil(res, "expecting non-nil response")
+		assertion.Nil(err, "expecting nil err")
+		assertion.NotNil(res, "expecting non-nil response")
 	})
 	t.Run("test url composition with no start date", func(t *testing.T) {
-
-		assert := assert.New(t)
+		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			assert.NotNil(r.URL)
-			assert.Equal(r.URL.Path, "/weather/point")
-			assert.Equal(
+			assertion.NotNil(r.URL)
+			assertion.Equal(r.URL.Path, endpointPath)
+			assertion.Equal(
 				r.URL.RawQuery,
 				fmt.Sprintf(
 					"lat=%f&lng=%f&end=%d",
@@ -264,7 +263,7 @@ func TestClientGetPoint(t *testing.T) {
 					end.Unix(),
 				),
 			)
-			fmt.Fprintln(w, "{}")
+			fmt.Fprintln(w, http.NoBody)
 		}))
 		defer ts.Close()
 
@@ -279,17 +278,18 @@ func TestClientGetPoint(t *testing.T) {
 			End: &end,
 		})
 
-		assert.Nil(err, "expecting nil err")
-		assert.NotNil(res, "expecting non-nil response")
+		assertion.Nil(err)
+		assertion.NotNil(res)
 	})
 
 	t.Run("with response error", func(t *testing.T) {
-
-		assert := assert.New(t)
+		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			want := `{"errors:{"key", "Unauthorized – Your API key is invalid."}}`
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(want))
+			if _, err := w.Write([]byte(want)); err != nil {
+				t.Fatal(err)
+			}
 		}))
 		defer ts.Close()
 
@@ -304,15 +304,16 @@ func TestClientGetPoint(t *testing.T) {
 			End: &end,
 		})
 
-		assert.Nil(res, "expecting nil response")
-		assert.NotNil(err, "expecting non-nil error")
+		assertion.Nil(res)
+		assertion.NotNil(err)
 	})
 }
 
-// lower case first letter helper func
+// lower case first letter helper func.
 func lcFirstLetter(str string) string {
 	for i, v := range str {
 		return string(unicode.ToLower(v)) + str[i+1:]
 	}
+
 	return ""
 }

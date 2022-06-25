@@ -8,15 +8,18 @@ import (
 )
 
 const (
+	// BaseURLV2 https://docs.stormglass.io/#/?id=api-endpoint.
 	BaseURLV2 = "https://api.stormglass.io/v2"
 )
 
+// Client for accessing StormGlass API.
 type Client struct {
 	BaseURL    string
 	apiKey     string
 	HTTPClient *http.Client
 }
 
+// NewClient returns a new Client with default config.
 func NewClient(apiKey string) *Client {
 	return &Client{
 		BaseURL: BaseURLV2,
@@ -44,7 +47,7 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	}
 
 	if err = json.NewDecoder(res.Body).Decode(v); err != nil {
-		return fmt.Errorf("decode error %v", err)
+		return fmt.Errorf("decode error %w", err)
 	}
 
 	return nil
