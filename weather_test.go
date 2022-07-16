@@ -109,6 +109,7 @@ func TestSourceOptionsToList(t *testing.T) {
 
 		expected := []string{
 			"icon",
+			"dwt",
 			"noaa",
 			"meteo",
 			"meto",
