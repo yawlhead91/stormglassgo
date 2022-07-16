@@ -1,6 +1,7 @@
 # Stormglass.io V2 GO client
 
 ![tests](https://github.com/yawlhead91/stormglassgo/actions/workflows/integration-test.yml/badge.svg)
+![lint](https://github.com/yawlhead91/stormglassgo/actions/workflows/golangci-lint.yml/badge.svg)
 
 Go client for the stormglass.io v2 REST API see [documentation](https://docs.stormglass.io/#/) for more information.
 
