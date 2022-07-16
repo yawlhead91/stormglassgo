@@ -12,6 +12,7 @@ import (
 	"github.com/jinzhu/now"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	stormglass "github.com/yawlhead91/stormglassgo"
 )
 
@@ -71,7 +72,8 @@ func TestGetPoint(t *testing.T) {
 		})
 
 		assert.Nil(t, err, "expecting nil response")
-		assert.NotNil(t, res, "expecting non-nil response")
+		require.NotNil(t, res, "expecting non-nil response")
+		require.NotNil(t, res.Hours, "expecting non-nil response hours")
 		assert.Equal(t, 24, len(res.Hours), "unexpected hour point count")
 		assert.NotNil(t, res.Meta, "expecting non-nil response")
 		assert.Equal(t, res.Meta.Cost, 1, "unexpected meta value for cost")

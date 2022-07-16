@@ -1,0 +1,22 @@
+name: integration-test
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - main
+jobs:
+  int-test:
+    runs-on: ubuntu-latest
+    env:
+      STORMGLASS_API_KEY: ${{ secrets.API_KEY }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      - name: int-test
+        run: go test -v -tags=integration ./...
