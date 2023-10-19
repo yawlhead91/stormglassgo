@@ -186,6 +186,33 @@ type ParamsOptions struct {
 	Visibility              bool
 	WaterTemperature        bool
 	WaveDirection           bool
+	WaveHeight              bool
+	WavePeriod              bool
+	WindDirection           bool
+	WindDirection1000Hpa    bool
+	WindDirection100M       bool
+	WindDirection200Hpa     bool
+	WindDirection20M        bool
+	WindDirection30M        bool
+	WindDirection40M        bool
+	WindDirection500Hpa     bool
+	WindDirection50M        bool
+	WindDirection800Hpa     bool
+	WindDirection80M        bool
+	WindSpeed               bool
+	WindSpeed1000Hpa        bool
+	WindSpeed100M           bool
+	WindSpeed200Hpa         bool
+	WindSpeed20M            bool
+	WindSpeed30M            bool
+	WindSpeed40M            bool
+	WindSpeed500Hpa         bool
+	WindSpeed50M            bool
+	WindSpeed800Hpa         bool
+	WindSpeed80M            bool
+	WindWaveDirection       bool
+	WindWaveHeight          bool
+	WindWavePeriod          bool
 }
 
 func (p ParamsOptions) toList() []string {
@@ -297,6 +324,113 @@ func (p ParamsOptions) toList() []string {
 
 	if p.WaveDirection {
 		params = append(params, "waveDirection")
+	}
+
+	if p.WaveHeight {
+		params = append(params, "waveHeight")
+	}
+
+	if p.WavePeriod {
+		params = append(params, "wavePeriod")
+	}
+
+	if p.WindDirection {
+		params = append(params, "windDirection")
+	}
+
+	if p.WindDirection1000Hpa {
+		params = append(params, "windDirection1000Hpa")
+	}
+
+	if p.WindDirection100M {
+		params = append(params, "windDirection100M ")
+	}
+	if p.WindDirection200Hpa {
+		params = append(params, "windDirection200Hpa")
+	}
+
+	if p.WindDirection20M {
+		params = append(params, "windDirection20M")
+	}
+
+	if p.WindDirection30M {
+		params = append(params, "windDirection30M")
+	}
+
+	if p.WindDirection40M {
+		params = append(params, "windDirection40M")
+	}
+
+	if p.WindDirection500Hpa {
+		params = append(params, "windDirection500Hpa")
+	}
+
+	if p.WindDirection50M {
+		params = append(params, "windDirection50M")
+	}
+
+	if p.WindDirection800Hpa {
+		params = append(params, "windDirection800Hpa")
+	}
+
+	if p.WindDirection80M {
+		params = append(params, "windDirection80M")
+	}
+
+	if p.WindSpeed {
+		params = append(params, "windSpeed")
+	}
+
+	if p.WindSpeed1000Hpa {
+		params = append(params, "windSpeed1000Hpa")
+	}
+
+	if p.WindSpeed100M {
+		params = append(params, "windSpeed100M")
+	}
+
+	if p.WindSpeed200Hpa {
+		params = append(params, "windSpeed200Hpa")
+	}
+
+	if p.WindSpeed20M {
+		params = append(params, "windSpeed20M")
+	}
+
+	if p.WindSpeed30M {
+		params = append(params, "windSpeed30M")
+	}
+
+	if p.WindSpeed40M {
+		params = append(params, "windSpeed40M")
+	}
+
+	if p.WindSpeed500Hpa {
+		params = append(params, "windSpeed500Hpa")
+	}
+
+	if p.WindSpeed50M {
+		params = append(params, "windSpeed50M")
+	}
+
+	if p.WindSpeed800Hpa {
+		params = append(params, "windSpeed800Hpa")
+	}
+
+	if p.WindSpeed80M {
+		params = append(params, "windSpeed80M")
+	}
+
+	if p.WindWaveDirection {
+		params = append(params, "windWaveDirection")
+	}
+
+	if p.WindWaveHeight {
+		params = append(params, "windWaveHeight")
+	}
+
+	if p.WindWavePeriod {
+		params = append(params, "windWavePeriod")
 	}
 
 	return params
