@@ -30,48 +30,25 @@ func TestParamOptionsToList(t *testing.T) {
 	})
 
 	t.Run("with all options", func(t *testing.T) {
-		options := ParamsOptions{
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
-			true,
+		options := ParamsOptions{}
+
+		v := reflect.ValueOf(&options)
+		e := v.Elem()
+
+		for i := 0; i < e.NumField(); i++ {
+			e.Field(i).SetBool(true)
 		}
 
 		list := options.toList()
 
-		v := reflect.ValueOf(options)
-
 		assertion := assert.New(t)
-		assertion.Len(list, v.NumField())
+		assertion.Len(list, e.NumField())
 
 		var expected []string
 		// this assumes naming conventions for fields names
 		// as camel case matches of expected values
-		for i := 0; i < v.NumField(); i++ {
-			expected = append(expected, lcFirstLetter(v.Type().Field(i).Name))
+		for i := 0; i < e.NumField(); i++ {
+			expected = append(expected, lcFirstLetter(e.Type().Field(i).Name))
 		}
 
 		assertion.Equal(expected, list)
