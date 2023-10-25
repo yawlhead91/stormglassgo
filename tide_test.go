@@ -33,7 +33,7 @@ func TestClient_GetExtremesPoint(t *testing.T) {
 			expectedValues.Add("lng", fmt.Sprintf("%f", lng))
 			expectedValues.Add("start", fmt.Sprintf("%d", start.Unix()))
 			expectedValues.Add("end", fmt.Sprintf("%d", end.Unix()))
-			expectedValues.Add("datum", "mllw")
+			expectedValues.Add("datum", "MLLW")
 			assertion.Equal(
 				expectedValues.Encode(),
 				r.URL.RawQuery,
