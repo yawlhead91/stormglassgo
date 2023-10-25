@@ -3,12 +3,13 @@ package stormglass
 import (
 	"context"
 	"fmt"
-	"github.com/jinzhu/now"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
+
+	"github.com/jinzhu/now"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestClient_GetExtremesPoint(t *testing.T) {
