@@ -1,7 +1,6 @@
 //go:build integration
-// +build integration
 
-package integration_tests_test
+package integrationtests
 
 import (
 	"context"
@@ -18,11 +17,11 @@ import (
 
 const (
 	// Banzai Pipeline, Oahu, Hawaii
-	lat = 58.7984
-	lng = 17.8081
+	lat = 21.6646
+	lng = -158.0529
 )
 
-func TestGetPoint(t *testing.T) {
+func Test_GetPoint(t *testing.T) {
 	t.Run(" return api error", func(t *testing.T) {
 		var start = now.BeginningOfDay()
 
@@ -30,12 +29,14 @@ func TestGetPoint(t *testing.T) {
 
 		ctx := context.Background()
 		res, err := c.GetPoint(ctx, stormglass.PointsRequestOptions{
-			Lat: lat,
-			Lng: lng,
+			CommonRequestOptions: stormglass.CommonRequestOptions{
+				Lat:   lat,
+				Lng:   lng,
+				Start: &start,
+			},
 			Params: stormglass.WeatherParamsOptions{
 				AirTemperature: true,
 			},
-			Start: &start,
 		})
 
 		assert.Nil(t, res, "expecting nil response")
@@ -63,11 +64,13 @@ func TestGetPoint(t *testing.T) {
 
 		ctx := context.Background()
 		res, err := c.GetPoint(ctx, stormglass.PointsRequestOptions{
-			Lat:    lat,
-			Lng:    lng,
+			CommonRequestOptions: stormglass.CommonRequestOptions{
+				Lat:   lat,
+				Lng:   lng,
+				Start: &start,
+				End:   &end,
+			},
 			Params: params,
-			Start:  &start,
-			End:    &end,
 			Source: sources,
 		})
 

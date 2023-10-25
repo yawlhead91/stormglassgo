@@ -12,7 +12,7 @@ import (
 type ExtremesPointStation struct {
 	Distance float64 `json:"distance,omitempty"`
 	Lat      float64 `json:"lat,omitempty"`
-	Lan      float64 `json:"lan,omitempty"`
+	Lng      float64 `json:"lan,omitempty"`
 	Name     string  `json:"name,omitempty"`
 	Source   string  `json:"source,omitempty"`
 }
@@ -20,7 +20,8 @@ type ExtremesPointStation struct {
 // ExtremesPointMeta represents the meta data from the extremes point request.
 type ExtremesPointMeta struct {
 	Meta
-	Station ExtremesPointStation `json:"station,omitempty"`
+	Datum   ExtremesPointsDatumOption `json:"datum,omitempty"`
+	Station ExtremesPointStation      `json:"station,omitempty"`
 }
 
 // ExtremesPoint represents an extreme point.
@@ -47,8 +48,8 @@ type ExtremesPointsDatumOption string
 
 // Datum options for the extremes points request.
 const (
-	MLLW ExtremesPointsDatumOption = "mllw"
-	MSL  ExtremesPointsDatumOption = "msl"
+	MLLW ExtremesPointsDatumOption = "MLLW"
+	MSL  ExtremesPointsDatumOption = "MSL"
 )
 
 // GetExtremesPoint send an extreme point request: https://docs.stormglass.io/#/tide?id=extremes-point-request
