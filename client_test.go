@@ -9,6 +9,8 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
+	var testKey = "testkey123"
+
 	t.Run("should return default client", func(t *testing.T) {
 		client := NewClient(testKey)
 		assert.NotNil(t, client)
@@ -18,6 +20,8 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClientSendRequest(t *testing.T) {
+	var testKey = "testkey123"
+
 	t.Run("test error status code", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			want := `{"errors":{"key":"API key is invalid"}}`

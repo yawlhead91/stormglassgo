@@ -32,7 +32,7 @@ func TestGetPoint(t *testing.T) {
 		res, err := c.GetPoint(ctx, stormglass.PointsRequestOptions{
 			Lat: lat,
 			Lng: lng,
-			Params: stormglass.ParamsOptions{
+			Params: stormglass.WeatherParamsOptions{
 				AirTemperature: true,
 			},
 			Start: &start,
@@ -49,13 +49,13 @@ func TestGetPoint(t *testing.T) {
 
 		c := stormglass.NewClient(os.Getenv("STORMGLASS_API_KEY"))
 
-		params := stormglass.ParamsOptions{
+		params := stormglass.WeatherParamsOptions{
 			AirTemperature:   true,
 			WaveDirection:    true,
 			WaterTemperature: true,
 		}
 
-		sources := stormglass.SourcesOptions{
+		sources := stormglass.WeatherSourcesOptions{
 			ICON:        true,
 			UKMetOffice: true,
 			StormGlass:  true,

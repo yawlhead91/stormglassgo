@@ -5,8 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"sort"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
 // Points represents a Point request response.
@@ -15,21 +19,21 @@ type Points struct {
 	Meta  Meta   `json:"meta,omitempty"`
 }
 
-// SourcesOptions : https://docs.stormglass.io/#/sources?id=available-sources
-type SourcesOptions struct {
+// WeatherSourcesOptions : https://docs.stormglass.io/#/sources?id=available-sources
+type WeatherSourcesOptions struct {
 	ICON        bool
 	DWD         bool
 	NOAA        bool
 	MeteoFrance bool
-	UKMetOffice bool
 	FCOO        bool
 	FMI         bool
 	YR          bool
 	SMHI        bool
 	StormGlass  bool
+	UKMetOffice bool
 }
 
-func (s SourcesOptions) toList() []string {
+func (s WeatherSourcesOptions) toList() []string {
 	var sources []string
 	if s.ICON {
 		sources = append(sources, "icon")
@@ -74,8 +78,8 @@ func (s SourcesOptions) toList() []string {
 	return sources
 }
 
-// SourceValues represents potential source values response.
-type SourceValues struct {
+// WeatherSourceValues represents potential source values response.
+type WeatherSourceValues struct {
 	ICON        *float64 `json:"icon,omitempty"`
 	DWD         *float64 `json:"dwd,omitempty"`
 	NOAA        *float64 `json:"noaa,omitempty"`
@@ -90,76 +94,64 @@ type SourceValues struct {
 
 // Hour represents an hour data point response.
 type Hour struct {
-	AirTemperature          *SourceValues `json:"airTemperature,omitempty"`
-	AirTemperature1000Hpa   *SourceValues `json:"airTemperature1000hpa,omitempty"`
-	AirTemperature100M      *SourceValues `json:"airTemperature100m,omitempty"`
-	AirTemperature200Hpa    *SourceValues `json:"airTemperature200hpa,omitempty"`
-	AirTemperature500Hpa    *SourceValues `json:"airTemperature500hpa,omitempty"`
-	AirTemperature800Hpa    *SourceValues `json:"airTemperature800hpa,omitempty"`
-	AirTemperature80M       *SourceValues `json:"airTemperature80m,omitempty"`
-	CloudCover              *SourceValues `json:"cloudCover,omitempty"`
-	CurrentDirection        *SourceValues `json:"currentDirection,omitempty"`
-	CurrentSpeed            *SourceValues `json:"currentSpeed,omitempty"`
-	Gust                    *SourceValues `json:"gust,omitempty"`
-	Humidity                *SourceValues `json:"humidity,omitempty"`
-	IceCover                *SourceValues `json:"iceCover,omitempty"`
-	Precipitation           *SourceValues `json:"precipitation,omitempty"`
-	Pressure                *SourceValues `json:"pressure,omitempty"`
-	SeaLevel                *SourceValues `json:"seaLevel,omitempty"`
-	SecondarySwellDirection *SourceValues `json:"secondarySwellDirection,omitempty"`
-	SecondarySwellHeight    *SourceValues `json:"secondarySwellHeight,omitempty"`
-	SecondarySwellPeriod    *SourceValues `json:"secondarySwellPeriod,omitempty"`
-	SnowDepth               *SourceValues `json:"snowDepth,omitempty"`
-	SwellDirection          *SourceValues `json:"swellDirection,omitempty"`
-	SwellHeight             *SourceValues `json:"swellHeight,omitempty"`
-	SwellPeriod             *SourceValues `json:"swellPeriod,omitempty"`
-	Time                    *time.Time    `json:"time,omitempty"`
-	Visibility              *SourceValues `json:"visibility,omitempty"`
-	WaterTemperature        *SourceValues `json:"waterTemperature,omitempty"`
-	WaveDirection           *SourceValues `json:"waveDirection,omitempty"`
-	WaveHeight              *SourceValues `json:"waveHeight,omitempty"`
-	WavePeriod              *SourceValues `json:"wavePeriod,omitempty"`
-	WindDirection           *SourceValues `json:"windDirection,omitempty"`
-	WindDirection1000Hpa    *SourceValues `json:"windDirection1000hpa,omitempty"`
-	WindDirection100M       *SourceValues `json:"windDirection100m,omitempty"`
-	WindDirection200Hpa     *SourceValues `json:"windDirection200hpa,omitempty"`
-	WindDirection20M        *SourceValues `json:"windDirection20m,omitempty"`
-	WindDirection30M        *SourceValues `json:"windDirection30m,omitempty"`
-	WindDirection40M        *SourceValues `json:"windDirection40m,omitempty"`
-	WindDirection500Hpa     *SourceValues `json:"windDirection500hpa,omitempty"`
-	WindDirection50M        *SourceValues `json:"windDirection50m,omitempty"`
-	WindDirection800Hpa     *SourceValues `json:"windDirection800hpa,omitempty"`
-	WindDirection80M        *SourceValues `json:"windDirection80m,omitempty"`
-	WindSpeed               *SourceValues `json:"windSpeed,omitempty"`
-	WindSpeed1000Hpa        *SourceValues `json:"windSpeed1000hpa,omitempty"`
-	WindSpeed100M           *SourceValues `json:"windSpeed100m,omitempty"`
-	WindSpeed200Hpa         *SourceValues `json:"windSpeed200hpa,omitempty"`
-	WindSpeed20M            *SourceValues `json:"windSpeed20m,omitempty"`
-	WindSpeed30M            *SourceValues `json:"windSpeed30m,omitempty"`
-	WindSpeed40M            *SourceValues `json:"windSpeed40m,omitempty"`
-	WindSpeed500Hpa         *SourceValues `json:"windSpeed500hpa,omitempty"`
-	WindSpeed50M            *SourceValues `json:"windSpeed50m,omitempty"`
-	WindSpeed800Hpa         *SourceValues `json:"windSpeed800hpa,omitempty"`
-	WindSpeed80M            *SourceValues `json:"windSpeed80m,omitempty"`
-	WindWaveDirection       *SourceValues `json:"windWaveDirection,omitempty"`
-	WindWaveHeight          *SourceValues `json:"windWaveHeight,omitempty"`
-	WindWavePeriod          *SourceValues `json:"windWavePeriod,omitempty"`
+	AirTemperature          *WeatherSourceValues `json:"airTemperature,omitempty"`
+	AirTemperature1000Hpa   *WeatherSourceValues `json:"airTemperature1000hpa,omitempty"`
+	AirTemperature100M      *WeatherSourceValues `json:"airTemperature100m,omitempty"`
+	AirTemperature200Hpa    *WeatherSourceValues `json:"airTemperature200hpa,omitempty"`
+	AirTemperature500Hpa    *WeatherSourceValues `json:"airTemperature500hpa,omitempty"`
+	AirTemperature800Hpa    *WeatherSourceValues `json:"airTemperature800hpa,omitempty"`
+	AirTemperature80M       *WeatherSourceValues `json:"airTemperature80m,omitempty"`
+	CloudCover              *WeatherSourceValues `json:"cloudCover,omitempty"`
+	CurrentDirection        *WeatherSourceValues `json:"currentDirection,omitempty"`
+	CurrentSpeed            *WeatherSourceValues `json:"currentSpeed,omitempty"`
+	Gust                    *WeatherSourceValues `json:"gust,omitempty"`
+	Humidity                *WeatherSourceValues `json:"humidity,omitempty"`
+	IceCover                *WeatherSourceValues `json:"iceCover,omitempty"`
+	Precipitation           *WeatherSourceValues `json:"precipitation,omitempty"`
+	Pressure                *WeatherSourceValues `json:"pressure,omitempty"`
+	SeaLevel                *WeatherSourceValues `json:"seaLevel,omitempty"`
+	SecondarySwellDirection *WeatherSourceValues `json:"secondarySwellDirection,omitempty"`
+	SecondarySwellHeight    *WeatherSourceValues `json:"secondarySwellHeight,omitempty"`
+	SecondarySwellPeriod    *WeatherSourceValues `json:"secondarySwellPeriod,omitempty"`
+	SnowDepth               *WeatherSourceValues `json:"snowDepth,omitempty"`
+	SwellDirection          *WeatherSourceValues `json:"swellDirection,omitempty"`
+	SwellHeight             *WeatherSourceValues `json:"swellHeight,omitempty"`
+	SwellPeriod             *WeatherSourceValues `json:"swellPeriod,omitempty"`
+	Time                    *time.Time           `json:"time,omitempty"`
+	Visibility              *WeatherSourceValues `json:"visibility,omitempty"`
+	WaterTemperature        *WeatherSourceValues `json:"waterTemperature,omitempty"`
+	WaveDirection           *WeatherSourceValues `json:"waveDirection,omitempty"`
+	WaveHeight              *WeatherSourceValues `json:"waveHeight,omitempty"`
+	WavePeriod              *WeatherSourceValues `json:"wavePeriod,omitempty"`
+	WindDirection           *WeatherSourceValues `json:"windDirection,omitempty"`
+	WindDirection1000Hpa    *WeatherSourceValues `json:"windDirection1000hpa,omitempty"`
+	WindDirection100M       *WeatherSourceValues `json:"windDirection100m,omitempty"`
+	WindDirection200Hpa     *WeatherSourceValues `json:"windDirection200hpa,omitempty"`
+	WindDirection20M        *WeatherSourceValues `json:"windDirection20m,omitempty"`
+	WindDirection30M        *WeatherSourceValues `json:"windDirection30m,omitempty"`
+	WindDirection40M        *WeatherSourceValues `json:"windDirection40m,omitempty"`
+	WindDirection500Hpa     *WeatherSourceValues `json:"windDirection500hpa,omitempty"`
+	WindDirection50M        *WeatherSourceValues `json:"windDirection50m,omitempty"`
+	WindDirection800Hpa     *WeatherSourceValues `json:"windDirection800hpa,omitempty"`
+	WindDirection80M        *WeatherSourceValues `json:"windDirection80m,omitempty"`
+	WindSpeed               *WeatherSourceValues `json:"windSpeed,omitempty"`
+	WindSpeed1000Hpa        *WeatherSourceValues `json:"windSpeed1000hpa,omitempty"`
+	WindSpeed100M           *WeatherSourceValues `json:"windSpeed100m,omitempty"`
+	WindSpeed200Hpa         *WeatherSourceValues `json:"windSpeed200hpa,omitempty"`
+	WindSpeed20M            *WeatherSourceValues `json:"windSpeed20m,omitempty"`
+	WindSpeed30M            *WeatherSourceValues `json:"windSpeed30m,omitempty"`
+	WindSpeed40M            *WeatherSourceValues `json:"windSpeed40m,omitempty"`
+	WindSpeed500Hpa         *WeatherSourceValues `json:"windSpeed500hpa,omitempty"`
+	WindSpeed50M            *WeatherSourceValues `json:"windSpeed50m,omitempty"`
+	WindSpeed800Hpa         *WeatherSourceValues `json:"windSpeed800hpa,omitempty"`
+	WindSpeed80M            *WeatherSourceValues `json:"windSpeed80m,omitempty"`
+	WindWaveDirection       *WeatherSourceValues `json:"windWaveDirection,omitempty"`
+	WindWaveHeight          *WeatherSourceValues `json:"windWaveHeight,omitempty"`
+	WindWavePeriod          *WeatherSourceValues `json:"windWavePeriod,omitempty"`
 }
 
-// Meta data from Point request.
-type Meta struct {
-	Cost         int      `json:"cost,omitempty"`
-	DailyQuota   int      `json:"dailyQuota,omitempty"`
-	End          string   `json:"end,omitempty"`
-	Lat          float64  `json:"lat,omitempty"`
-	Lng          float64  `json:"lng,omitempty"`
-	Params       []string `json:"params,omitempty"`
-	RequestCount int      `json:"requestCount,omitempty"`
-	Start        string   `json:"start,omitempty"`
-}
-
-// ParamsOptions holds optional parameters.
-type ParamsOptions struct {
+// WeatherParamsOptions holds optional parameters.
+type WeatherParamsOptions struct {
 	Time                    bool
 	AirTemperature          bool
 	AirTemperature80m       bool
@@ -216,7 +208,7 @@ type ParamsOptions struct {
 	WindWavePeriod          bool
 }
 
-func (p ParamsOptions) toList() []string {
+func (p WeatherParamsOptions) toList() []string {
 	var params []string
 
 	b, _ := json.Marshal(&p)
@@ -225,46 +217,74 @@ func (p ParamsOptions) toList() []string {
 
 	for k, v := range m {
 		if v {
-			params = append(params, k)
+			params = append(params, firstToLower(k))
 		}
 	}
+
+	sort.Slice(params, func(i, j int) bool {
+		return params[i] < params[j]
+	})
 
 	return params
 }
 
-// PointsRequestOptions for available query paramters.
+func firstToLower(s string) string {
+	r, size := utf8.DecodeRuneInString(s)
+	if r == utf8.RuneError && size <= 1 {
+		return s
+	}
+	lc := unicode.ToLower(r)
+	if r == lc {
+		return s
+	}
+	return string(lc) + s[size:]
+}
+
+// PointsRequestOptions for available query parameters.
 type PointsRequestOptions struct {
-	Lng    float64        `json:"lng,omitempty"`
-	Lat    float64        `json:"lat,omitempty"`
-	Params ParamsOptions  `json:"params,omitempty"`
-	Start  *time.Time     `json:"start,omitempty"`
-	End    *time.Time     `json:"end,omitempty"`
-	Source SourcesOptions `json:"sources,omitempty"`
+	CommonRequestOptions
+	Params WeatherParamsOptions  `json:"params,omitempty"`
+	Source WeatherSourcesOptions `json:"sources,omitempty"`
 }
 
 // GetPoint sends a Point request https://docs.stormglass.io/#/weather?id=point-request.
 func (c *Client) GetPoint(ctx context.Context, options PointsRequestOptions) (*Points, error) {
-	endpoint := fmt.Sprintf("%s/weather/point?lat=%f&lng=%f", c.BaseURL, options.Lat, options.Lng)
+	path, err := url.JoinPath(c.BaseURL, "weather", "point")
+	if err != nil {
+		return nil, err
+	}
+
+	u, err := url.Parse(path)
+	if err != nil {
+		return nil, err
+	}
+
+	values := url.Values{}
+
+	values.Add("lat", fmt.Sprintf("%f", options.Lat))
+	values.Add("lng", fmt.Sprintf("%f", options.Lng))
 
 	params := options.Params.toList()
 	if len(params) > 0 {
-		endpoint = fmt.Sprintf("%s&params=%s", endpoint, strings.Join(params, ","))
+		values.Add("params", strings.Join(params, ","))
 	}
 
 	if options.Start != nil {
-		endpoint = fmt.Sprintf("%s&start=%d", endpoint, options.Start.Unix())
+		values.Add("start", fmt.Sprintf("%d", options.Start.Unix()))
 	}
 
 	if options.End != nil {
-		endpoint = fmt.Sprintf("%s&end=%d", endpoint, options.End.Unix())
+		values.Add("end", fmt.Sprintf("%d", options.End.Unix()))
 	}
 
 	sources := options.Source.toList()
 	if len(sources) > 0 {
-		endpoint = fmt.Sprintf("%s&source=%s", endpoint, strings.Join(sources, ","))
+		values.Add("source", strings.Join(sources, ","))
 	}
 
-	req, err := http.NewRequest("GET", endpoint, http.NoBody)
+	u.RawQuery = values.Encode()
+
+	req, err := http.NewRequest("GET", u.String(), http.NoBody)
 	if err != nil {
 		return nil, err
 	}

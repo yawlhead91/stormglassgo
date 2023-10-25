@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
+	"sort"
 	"testing"
 	"unicode"
 
@@ -14,23 +16,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	testKey      = "testkey123"
-	endpointPath = "/weather/point"
-	lat          = 58.7984
-	lng          = 17.8081
-)
-
 func TestParamOptionsToList(t *testing.T) {
 	t.Run("with no options", func(t *testing.T) {
-		var options ParamsOptions
+		var options WeatherParamsOptions
 		list := options.toList()
 
 		assert.Len(t, list, 0)
 	})
 
 	t.Run("with all options", func(t *testing.T) {
-		options := ParamsOptions{}
+		options := WeatherParamsOptions{}
 
 		v := reflect.ValueOf(&options)
 		e := v.Elem()
@@ -51,20 +46,29 @@ func TestParamOptionsToList(t *testing.T) {
 			expected = append(expected, lcFirstLetter(e.Type().Field(i).Name))
 		}
 
+		s := func(a []string) {
+			sort.Slice(a, func(i, j int) bool {
+				return a[i] < a[j]
+			})
+		}
+
+		s(expected)
+		s(list)
+
 		assertion.Equal(expected, list)
 	})
 }
 
 func TestSourceOptionsToList(t *testing.T) {
 	t.Run("with no options", func(t *testing.T) {
-		var options SourcesOptions
+		var options WeatherSourcesOptions
 		list := options.toList()
 
 		assert.Len(t, list, 0)
 	})
 
 	t.Run("with all options", func(t *testing.T) {
-		options := SourcesOptions{
+		options := WeatherSourcesOptions{
 			true,
 			true,
 			true,
@@ -101,32 +105,36 @@ func TestSourceOptionsToList(t *testing.T) {
 	})
 }
 
-func TestClientGetPoint(t *testing.T) {
+func TestClient_GetPoint(t *testing.T) {
 	var (
-		start = now.BeginningOfDay()
-		end   = now.EndOfDay()
+		start        = now.BeginningOfDay()
+		end          = now.EndOfDay()
+		testKey      = "testkey123"
+		endpointPath = "/weather/point"
+		lat          = 58.7984
+		lng          = 17.8081
 	)
 
 	t.Run("test full url composition", func(t *testing.T) {
 		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assertion.NotNil(r.URL)
-			assertion.Equal(r.URL.Path, endpointPath)
+			assertion.Equal(endpointPath, r.URL.Path)
+
+			expectedValues := url.Values{}
+			expectedValues.Set("lat", fmt.Sprintf("%f", lat))
+			expectedValues.Set("lng", fmt.Sprintf("%f", lng))
+			expectedValues.Set("start", fmt.Sprintf("%d", start.Unix()))
+			expectedValues.Set("end", fmt.Sprintf("%d", end.Unix()))
+			expectedValues.Set("params", "airTemperature,waveDirection")
+			expectedValues.Set("source", "fcoo,fmi")
+
 			assertion.Equal(
+				expectedValues.Encode(),
 				r.URL.RawQuery,
-				fmt.Sprintf(
-					"lat=%f&lng=%f&params=%s,%s&start=%d&end=%d&source=%s,%s",
-					lat,
-					lng,
-					"airTemperature",
-					"waveDirection",
-					start.Unix(),
-					end.Unix(),
-					"fcoo",
-					"fmi",
-				),
 			)
-			fmt.Fprintln(w, "{}")
+
+			_, _ = fmt.Fprintln(w, "{}")
 		}))
 		defer ts.Close()
 
@@ -136,41 +144,43 @@ func TestClientGetPoint(t *testing.T) {
 
 		ctx := context.Background()
 		res, err := c.GetPoint(ctx, PointsRequestOptions{
-			Lat: lat,
-			Lng: lng,
-			Params: ParamsOptions{
+			CommonRequestOptions: CommonRequestOptions{
+				Lat:   lat,
+				Lng:   lng,
+				Start: &start,
+				End:   &end,
+			},
+			Params: WeatherParamsOptions{
 				AirTemperature: true,
 				WaveDirection:  true,
 			},
-			Source: SourcesOptions{
+			Source: WeatherSourcesOptions{
 				FCOO: true,
 				FMI:  true,
 			},
-			Start: &start,
-			End:   &end,
 		})
 
-		assertion.Nil(err, "expecting nil err")
+		assertion.NoError(err, "expecting nil err")
 		assertion.NotNil(res, "expecting non-nil response")
 	})
 	t.Run("test url composition with no params", func(t *testing.T) {
 		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assertion.NotNil(r.URL)
-			assertion.Equal(r.URL.Path, endpointPath)
+			assertion.Equal(endpointPath, r.URL.Path)
+
+			expectedValues := url.Values{}
+			expectedValues.Set("lat", fmt.Sprintf("%f", lat))
+			expectedValues.Set("lng", fmt.Sprintf("%f", lng))
+			expectedValues.Set("start", fmt.Sprintf("%d", start.Unix()))
+			expectedValues.Set("end", fmt.Sprintf("%d", end.Unix()))
+			expectedValues.Set("source", "fcoo,fmi")
+
 			assertion.Equal(
+				expectedValues.Encode(),
 				r.URL.RawQuery,
-				fmt.Sprintf(
-					"lat=%f&lng=%f&start=%d&end=%d&source=%s,%s",
-					lat,
-					lng,
-					start.Unix(),
-					end.Unix(),
-					"fcoo",
-					"fmi",
-				),
 			)
-			fmt.Fprintln(w, "{}")
+			_, _ = fmt.Fprintln(w, "{}")
 		}))
 		defer ts.Close()
 
@@ -180,14 +190,16 @@ func TestClientGetPoint(t *testing.T) {
 
 		ctx := context.Background()
 		res, err := c.GetPoint(ctx, PointsRequestOptions{
-			Lat: lat,
-			Lng: lng,
-			Source: SourcesOptions{
+			CommonRequestOptions: CommonRequestOptions{
+				Lat:   lat,
+				Lng:   lng,
+				Start: &start,
+				End:   &end,
+			},
+			Source: WeatherSourcesOptions{
 				FCOO: true,
 				FMI:  true,
 			},
-			Start: &start,
-			End:   &end,
 		})
 
 		assertion.Nil(err, "expecting nil err")
@@ -197,18 +209,19 @@ func TestClientGetPoint(t *testing.T) {
 		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assertion.NotNil(r.URL)
-			assertion.Equal(r.URL.Path, endpointPath)
+			assertion.Equal(endpointPath, r.URL.Path)
+
+			expectedValues := url.Values{}
+			expectedValues.Set("lat", fmt.Sprintf("%f", lat))
+			expectedValues.Set("lng", fmt.Sprintf("%f", lng))
+			expectedValues.Set("start", fmt.Sprintf("%d", start.Unix()))
+			expectedValues.Set("end", fmt.Sprintf("%d", end.Unix()))
+
 			assertion.Equal(
+				expectedValues.Encode(),
 				r.URL.RawQuery,
-				fmt.Sprintf(
-					"lat=%f&lng=%f&start=%d&end=%d",
-					lat,
-					lng,
-					start.Unix(),
-					end.Unix(),
-				),
 			)
-			fmt.Fprintln(w, "{}")
+			_, _ = fmt.Fprintln(w, "{}")
 		}))
 		defer ts.Close()
 
@@ -218,10 +231,12 @@ func TestClientGetPoint(t *testing.T) {
 
 		ctx := context.Background()
 		res, err := c.GetPoint(ctx, PointsRequestOptions{
-			Lat:   lat,
-			Lng:   lng,
-			Start: &start,
-			End:   &end,
+			CommonRequestOptions: CommonRequestOptions{
+				Lat:   lat,
+				Lng:   lng,
+				Start: &start,
+				End:   &end,
+			},
 		})
 
 		assertion.Nil(err, "expecting nil err")
@@ -231,17 +246,18 @@ func TestClientGetPoint(t *testing.T) {
 		assertion := assert.New(t)
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assertion.NotNil(r.URL)
-			assertion.Equal(r.URL.Path, endpointPath)
+			assertion.Equal(endpointPath, r.URL.Path)
+
+			expectedValues := url.Values{}
+			expectedValues.Set("lat", fmt.Sprintf("%f", lat))
+			expectedValues.Set("lng", fmt.Sprintf("%f", lng))
+			expectedValues.Set("end", fmt.Sprintf("%d", end.Unix()))
+
 			assertion.Equal(
+				expectedValues.Encode(),
 				r.URL.RawQuery,
-				fmt.Sprintf(
-					"lat=%f&lng=%f&end=%d",
-					lat,
-					lng,
-					end.Unix(),
-				),
 			)
-			fmt.Fprintln(w, http.NoBody)
+			_, _ = fmt.Fprintln(w, http.NoBody)
 		}))
 		defer ts.Close()
 
@@ -251,9 +267,11 @@ func TestClientGetPoint(t *testing.T) {
 
 		ctx := context.Background()
 		res, err := c.GetPoint(ctx, PointsRequestOptions{
-			Lat: lat,
-			Lng: lng,
-			End: &end,
+			CommonRequestOptions: CommonRequestOptions{
+				Lat: lat,
+				Lng: lng,
+				End: &end,
+			},
 		})
 
 		assertion.Nil(err)
@@ -277,9 +295,11 @@ func TestClientGetPoint(t *testing.T) {
 
 		ctx := context.Background()
 		res, err := c.GetPoint(ctx, PointsRequestOptions{
-			Lat: lat,
-			Lng: lng,
-			End: &end,
+			CommonRequestOptions: CommonRequestOptions{
+				Lat: lat,
+				Lng: lng,
+				End: &end,
+			},
 		})
 
 		assertion.Nil(res)
